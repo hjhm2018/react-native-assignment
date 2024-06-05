@@ -19,10 +19,15 @@ export default function SearchResultsScreen({ navigation }) {
   const [selectedTopic, setSelectedTopic] = useState("movie");
   const [moviesData, setMoviesData] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(false);
 
   const fetchData = async () => {
+    if (name == "") {
+      setError(true);
+      setMoviesData([]);
+      return;
+    }
+
     try {
       const response = await fetch(
         `https://api.themoviedb.org/3/search/${selectedTopic}?query=${encodeURI(
@@ -34,12 +39,9 @@ export default function SearchResultsScreen({ navigation }) {
       // console.log(data.results);
 
       setMoviesData(data.results);
-      setIsLoading(false);
-      setError("");
+      setError(false);
     } catch (error) {
       console.log("Error fetching data: ", error);
-      setIsLoading(false);
-      setError("Failed to fetch tv shows or movies");
     }
   };
 
@@ -54,7 +56,7 @@ export default function SearchResultsScreen({ navigation }) {
       <Text style={{ paddingBottom: 10 }}>
         Search Movie/Tv Show Name<Text style={{ color: "red" }}>*</Text>
       </Text>
-      <View style={styles.searchBar}>
+      <View style={[styles.searchBar, error ? styles.error : ""]}>
         <Ionicons name="search" size={24} style={{ padding: 10 }} />
         <TextInput
           style={styles.input}
@@ -69,7 +71,7 @@ export default function SearchResultsScreen({ navigation }) {
         <View style={styles.picker}>
           <Picker
             mode="dropdown"
-            style={{ width: 200, height: 100 }}
+            style={[styles.dropdown, error ? styles.error : ""]}
             selectedValue={selectedTopic}
             onValueChange={(itemValue) => setSelectedTopic(itemValue)}
           >
@@ -82,10 +84,19 @@ export default function SearchResultsScreen({ navigation }) {
           <Button
             title="Search"
             onPress={fetchData}
-            disabled={name == "" ? true : false}
+            // disabled={name == "" ? true : false}
           />
         </View>
       </View>
+      {error ? (
+        <View>
+          <Text style={{ color: "red", paddingBottom: 10 }}>
+            Movie/Tv Show name is required
+          </Text>
+        </View>
+      ) : (
+        ""
+      )}
       <View style={styles.listContainer}>
         <FlatList
           data={moviesData}
@@ -172,5 +183,12 @@ const styles = StyleSheet.create({
   searchBar: {
     flexDirection: "row",
     borderWidth: 1,
+  },
+  error: {
+    borderColor: "red",
+  },
+  dropdown: {
+    width: 200,
+    height: 100,
   },
 });
